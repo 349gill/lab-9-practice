@@ -101,6 +101,7 @@ int main() {
             if (event->is<sf::Event::Closed>()) {
                 return 0;
             } else if (auto keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+                std::cout << "key event\n"; // Debugging
                 if (keyPressed->scancode == sf::Keyboard::Scan::Q) {
                     return 0;
                 }
@@ -141,7 +142,32 @@ int main() {
         //
         // Use SOFT_LIMIT_PERCENT and HARD_LIMIT_PERCENT to parameterize the green and red
         // line positions.
-        camera.setCameraCenter({player.position.x, WINDOW_HEIGHT * 0.5f});
+        // camera.setCameraCenter({player.position.x, WINDOW_HEIGHT * 0.5f});
+
+        float player_window_pos = camera.worldToWindow(player.position).x;
+
+        float sLeft, sRight, hLeft, hRight;
+        
+        sLeft = windowSize.x * SOFT_LIMIT_PERCENT;
+        sRight = windowSize.x * (1.f - SOFT_LIMIT_PERCENT);
+        hLeft = windowSize.x * HARD_LIMIT_PERCENT;
+        hRight = windowSize.x * (1.f - HARD_LIMIT_PERCENT);
+
+        // Soft Exclusion Zone
+        if (player_window_pos < sLeft) {
+            camera.translateWindow({SOFT_CAMERA_ALPHA * (player_window_pos - sLeft), 0.f});
+        } else if (player_window_pos > sRight) {
+            camera.translateWindow({SOFT_CAMERA_ALPHA * (player_window_pos - sRight), 0.f});
+        }
+
+        player_window_pos = camera.worldToWindow(player.position).x;
+
+        // Hard Exclusion Zone
+        if (player_window_pos < hLeft) {
+            camera.translateWindow({player_window_pos - hLeft, 0.f});
+        } else if (player_window_pos > hRight) {
+            camera.translateWindow({player_window_pos - hRight, 0.f});
+        }
 
         worldView.setCenter(camera.getCameraCenter());
         window.clear(sf::Color::Black);
